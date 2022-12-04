@@ -10,6 +10,7 @@
 
 #include "our_parallel_functions.h"
 
+
 int main() {
 
   printf(" ~~~~~~~~~~~~~~~~~~  Code Version 1.8 pthreads  ~~~~~~~~~~~~~~~~~~ \n\n");
@@ -124,13 +125,18 @@ int main() {
     find_scc_parallel_input[i].find_scc_data.start_for =  i   * step_v ;
     find_scc_parallel_input[i].find_scc_data.end_for =  (i+1) * step_v ;
     find_scc_parallel_input[i].find_scc_data.is_G_not_empty = &is_G_not_empty;
-
+    
+        
+    //printf("Start of id %d is  = %u\n", i , color_init_data[i].coloring_initialization.start_of_the_part   );
+    //printf("End   of id %d is  = %u\n", i , color_init_data[i].coloring_initialization.end_of_the_part   );
         
   }           
   
   find_scc_parallel_input[number_of_threads-1].find_scc_data.end_for +=  v_colors.vector_size % number_of_threads ;
   // In case it is not divisible by the number_of_threads we add to last thread the extra work
   color_init_data[number_of_threads-1].coloring_initialization.end_of_the_part += v_colors.vector_size % number_of_threads ;
+  //printf("The remeinder is %u \n" ,v_colors.vector_size % number_of_threads );
+  // printf("End   of id %d is  = %u\n\n", number_of_threads-1 , color_init_data[number_of_threads-1].coloring_initialization.end_of_the_part   );
     
 
   // Define those to not change the whole code again 
@@ -138,10 +144,29 @@ int main() {
   uint* v_back  = v_colors.vector2_start ; 
   uint total_different_colors_in_SCC = 0;
 
+
+  /*
+  // Check sums to make sure the data was loaded succefully :)
+  uint sumI = 0;
+  uint sumJ = 0;
+
+  for (int i = 0; i < total_number_of_edges; i++) {
+    sumI += I[i];
+    sumJ += J[i];
+  }
+  printf("SumI = %u\n", sumI);
+  printf("sumJ = %u\n", sumJ);
+  */
+  
+
+
+
   bool has_changed_colors_forward, has_changed_colors_backward;
   uint total_nodes_in_SCC = 0;
   uint E = total_number_of_edges; // This is for the start it will get shorter
 
+  //print_edges(I, J, E);   // Debug_print
+  // bool has_changed_colors ;
 
   uint times_coloration_for; // Just to count how many times we
 
@@ -167,10 +192,14 @@ int main() {
     part_to_color_propagate[i].color_propagation.data = propagation_data  ;           // =============
     part_to_color_propagate[i].color_propagation.start_for =  i   * step_E ;          // =============
     part_to_color_propagate[i].color_propagation.end_for =  (i+1) * step_E ;          // =============
+      
+    //printf("Start of id %d is  = %u\n", i ,part_to_color_propagate[i].color_propagation.start_for  );
+    //printf("End   of id %d is  = %u\n", i , part_to_color_propagate[i].color_propagation.end_for   );
      
   }        
   
   part_to_color_propagate[number_of_threads-1].color_propagation.end_for += E % number_of_threads ;
+  //printf("End of id %d is  = %u\n\n", number_of_threads-1 , part_to_color_propagate[number_of_threads-1].color_propagation.end_for   );
        
   // In case it is not divisible by the number_of_threads we add to last thread the extra work
 
@@ -222,14 +251,14 @@ int main() {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ initialize_colors ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
 
- 
+    //printf("About to color v and v_back \n"  ) ;                              // Debug_print
     parfor(threads , number_of_threads ,initialize_colors_parallel ,  color_init_data  );
-
+    //printf("Ended coloring v and v_back \n"  ) ;                              // Debug_print
     
    
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  FORWWARD & BACKWARD  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-
+    //printf("About to go in FORWWARD & BACKWARD parallel while \n"  ) ;        // Debug_print
     has_changed_colors_forward = true;
     has_changed_colors_backward = true;
     
@@ -238,25 +267,31 @@ int main() {
         has_changed_colors_backward = false;
         parfor(threads , number_of_threads ,parallel_forward_and_backward_color_propagation , part_to_color_propagate );
     }    
+    //printf("About to go in FORWWARD & BACKWARD parallel while \n"  ) ;        // Debug_print
     
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  FORWWARD  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     
+    //printf("About to go in FORWWARD parallel while \n"  ) ;                   // Debug_print
     while (has_changed_colors_forward) {
       has_changed_colors_forward = false;
       parfor(threads , number_of_threads ,forward_color_propagation , part_to_color_propagate  );
     }    
+    //printf("Ended the FORWWARD parallel while \n\n"  ) ;                      // Debug_print
     
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  BACKWARD  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    //printf("About to go in BACKWARD parallel while \n"  ) ;                   // Debug_print
     while (has_changed_colors_backward) {
       has_changed_colors_backward = false;
       parfor(threads , number_of_threads ,backward_color_propagation  , part_to_color_propagate );
     }
+    //printf("Ended the BACKWARD parallel while \n"  ) ;                         // Debug_print
     
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  Find SCC  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // printf(" \nPrint who are in SCCs: \n");     // Debug_print
     
      
     int return_value = parfor(threads , number_of_threads , find_SCC , find_scc_parallel_input);
@@ -271,6 +306,10 @@ int main() {
       break;
     }
 
+
+    // print_edges(I, J, E);        // Debug_print
+
+    // trim ???? // Will this make it faster in any way ?
   }
 
   uint total_number_SCC = -1; // because 0 is included
