@@ -105,16 +105,7 @@ int parfor( pthread_t* threads , int total_number_of_threads, void* (some_parall
     }
   } 
   //printf("Threads joined \n\n"  ) ;
-  /*
-  if( total_sum != 0)   {
-    //int sum = (int) malloc(sizeof(int));
-    //sum = total_sum;
-    printf("The total sum is %d" , total_sum);
-  }
-  */
-  return total_sum ; //(void*) (&sum);
-  //return NULL ;
-
+  return total_sum ; 
 
 }
 
@@ -123,27 +114,10 @@ void* parfor_old( pthread_t* threads , int total_number_of_threads, void* (some_
   /*
     // Create threads      
     // printf("About to create %d threads \n" , total_number_of_threads ) ;
-    struct color_propagation_data_part *  all_data = (struct color_propagation_data_part *) thread_input ;
-    //struct color_propagation_data_part *  all_data_to_use[total_number_of_threads] ;
-    for ( int i = 0 ; i < total_number_of_threads ; i++){
-    //all_data_to_use[i] = &all_data[i] ;
-      uint temp1 = all_data[i].start_for ;
-      uint temp2 = all_data[i].end_for ;    
-      printf("A ForWARD thread , start %u , end %u \n", temp1 ,temp2 ) ;    
-    }
   */
   printf("\nEach_input of each thread: \n");
   for ( int i = 0 ; i < total_number_of_threads ; i++){
-    //void * thread_input_i = thread_input + i * thread_input_element_size ;
-    //struct color_propagation_data_part    temp_part = *(struct color_propagation_data_part*) (  thread_input + i * thread_input_element_size );
-    
-    //printf("The value of thread_input_i is: %p  <============================\n", thread_input_i);
-    
-    //uint temp1 = temp_part.start_for ;
-    //uint temp2 = temp_part.end_for ;    
-    //printf("A ForWARD thread , start %u , end %u \n", temp1 ,temp2 ) ; 
     if ( pthread_create(&threads[i], NULL, some_parallel_funtion,   thread_input + i * thread_input_element_size ) != 0)   {perror("Failed to created thread"); }
-      //if ( pthread_create(&threads[i], NULL, initialize_colors_parallel, (void*) &thread_part_to_initialize[i]) != 0)   {perror("Failed to created thread"); }
     
   }
   // Join Threads 
@@ -169,12 +143,6 @@ void* initialize_colors_parallel( void* v_part){
     int* v1 = v_part_fun.v.vector1_start ;
     int* v2 = v_part_fun.v.vector2_start ;
     int total_size = v_part_fun.v.vector_size;
-
-    /*
-    if ( end_to > total_size ){
-        printf("The thread was asked to write out of v");
-    }
-    */
     
     //printf("The initializze colors start %d  end_to %d \n" , start_from , end_to);
     for( int i = start_from ; i < end_to ; i++){
@@ -381,7 +349,6 @@ void* forward_color_propagation( void* input ){
     
     //printf("A thread was created pthread ID - %d \n" , pthread_self()  ) ;
     // Here we should break the inside loop to par for 
-    //struct color_propagation_data_part temp = *(struct color_propagation_data_part*) input  ;
 
     
     union parfor_inputs  temp_uninon =  *( (union parfor_inputs*) input );
@@ -389,12 +356,6 @@ void* forward_color_propagation( void* input ){
 
     uint temp1 = temp.start_for ;
     uint temp2 = temp.end_for ;
-    
-    //printf("The value of thread_input inside a thread is: %p  <============================\n", input);
-    //printf("A ForWARD thread before ******* for pthread ID - %d , start %u , end %u \n" , pthread_self() , temp1 , temp2 ) ;
-    
-    //printf("A ForWARD thread before &&&&&&&&&& , start %u , end %u \n" , temp1 , temp2 ) ;
-
 
     bool* has_changed_colors = temp.data.has_changed_colors_forward; // one way
     bool* is_in_SCC = temp.data.is_in_SCC;
@@ -409,21 +370,11 @@ void* forward_color_propagation( void* input ){
           continue;
         }
         if (v[I[k]] > v[J[k]]) {
-          //printf("            ==> The Forward node %2d gets from %2d the color %2d \n", J[k], I[k], v[I[k]]);        // Debug_pruint
           v[J[k]] = v[I[k]];
           *has_changed_colors = true;
           //is_there_a_change = true ;
         }
       }
-
-    /*
-    if(is_there_a_change ){
-        
-        printf("At least a change in a thread <====================\n"  ) ;
-    }
-    //printf("A thread has complited pthread ID - %d \n" , pthread_self()  ) ;
-
-    */
 
     return NULL ;
 }
@@ -436,15 +387,7 @@ void* backward_color_propagation( void* input ){
 
     uint temp1 = temp.start_for ;
     uint temp2 = temp.end_for ;
-    
-    //printf("The value of thread_input inside a thread is: %p  <============================\n", input);
-    //printf("A ForWARD thread before ******* for pthread ID - %d , start %u , end %u \n" , pthread_self() , temp1 , temp2 ) ;
-    
-    //printf("A ForWARD thread before &&&&&&&&&& , start %u , end %u \n" , temp1 , temp2 ) ;
-
-
-
-
+  
     bool* has_changed_colors = temp.data.has_changed_colors_backward; // one way
     bool* is_in_SCC = temp.data.is_in_SCC;
     uint* I = temp.data.J ;         // This is different because it is backwards 
@@ -453,39 +396,22 @@ void* backward_color_propagation( void* input ){
 
     //bool is_there_a_change = false ;
     
-    
-    //printf("A BACKWARD thread before &&&&&&&& , start %u , end %u \n" , temp.start_for , temp.end_for ) ;
+    //for (int k =( ( temp.end_for)-1 ); k >= temp.start_for ; k--) {
     for (uint k = temp.start_for; k < temp.end_for; k++) {
-   // for (uint k =( ( temp.end_for)-1 ); k >= temp.start_for ; k--) {
         
-        //printf("A BACKWARD thread inside for pthread ID - %d <========== \n" , pthread_self()) ;
         if (is_in_SCC[I[k]] || is_in_SCC[J[k]]) {
           continue;
         }
         
-        //printf("A BACKWARD thread inside for after 1 if pthread ID - %d <========== \n" , pthread_self()) ;
+
         
         if (v[I[k]] > v[J[k]]) {
-          //printf("            ==> The Forward node %2d gets from %2d the color %2d  pthread ID - %d \n", J[k], I[k], v[I[k]]  , pthread_self() );        // Debug_pruint
           v[J[k]] = v[I[k]];
           *has_changed_colors = true;
-          //is_there_a_change = true ;
-          //printf("At least a change in a thread <==================== pthread ID - %d \n" , pthread_self() ) ;
         }
         
-        //printf("A BACKWARD thread inside for after 2 if pthread ID - %d <========== \n" , pthread_self()) ;
         
     }
-
-    /*
-    if(is_there_a_change ){
-        
-        printf("At least a change in a thread <====================\n"  ) ;
-    }
-    */
-    
-    //printf("A BACKWARD thread has complited ~~~~~~~~~~~~ pthread ID - %d \n" , pthread_self()  ) ;
-
     
 
     return NULL ;
@@ -500,11 +426,7 @@ void* parallel_forward_and_backward_color_propagation( void* input ){
 
     uint temp1 = temp.start_for ;
     uint temp2 = temp.end_for ;
-    
-    //printf("The value of thread_input inside a thread is: %p  <============================\n", input);
-    //printf("A ForWARD thread before ******* for pthread ID - %d , start %u , end %u \n" , pthread_self() , temp1 , temp2 ) ;
-    
-    //printf("A ForWARD thread before &&&&&&&&&& , start %u , end %u \n" , temp1 , temp2 ) ;
+  
 
 
     bool* has_changed_colors_forward = temp.data.has_changed_colors_forward; //  Forward    
@@ -525,12 +447,10 @@ void* parallel_forward_and_backward_color_propagation( void* input ){
       }
 
       if (v[I[k]] > v[J[k]]) {
-        // printf("            ==> The Forward node %2d gets from %2d the color %2d \n", J[k], I[k], v[I[k]]);        // Debug_pruint
         v[J[k]] = v[I[k]];
         *has_changed_colors_forward = true;
       }
       if (v_back[J[k]] > v_back[I[k]]) {
-        // printf("            ==> The Backward node %2d gets from %2d the color %2d \n", I[k], J[k], v_back[J[k]]);        // Debug_pruint
         v_back[I[k]] = v_back[J[k]];
         *has_changed_colors_backward = true;
       }
@@ -538,14 +458,6 @@ void* parallel_forward_and_backward_color_propagation( void* input ){
       }
 
 
-    /*
-    if(is_there_a_change ){
-        
-        printf("At least a change in a thread <====================\n"  ) ;
-    }
-
-    */
-    //printf("A Forward and backwards thread has complited pthread ID - %d \n" , pthread_self()  ) ;
 
     return NULL ;
 }
@@ -584,20 +496,12 @@ void* find_SCC ( void* input){
         is_in_SCC[node] = true;
         SCC_colors[node] = v[node];
         pactial_sum++;
-        // printf("The node %4d is part of the SCC with color %4d \n", node,
-        // v[node]);        // Debug_print
+        // printf("The node %4d is part of the SCC with color %4d \n", node,v[node]);        // Debug_print
 
         if (v[node] == node) {
           // then 'node' is the root of an SCC
-          // add it in a list ?  or bool_array
           is_it_root[node] = true;
         }
-        /*
-        if (total_nodes_in_SCC == total_nodes) {
-          *is_G_not_empty = false;
-          //break;
-        }
-        */
       }
     }
 
@@ -891,60 +795,4 @@ int number_columns(int number_of_file){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-void initialize_colors(uint *v, uint *v_back, uint size_of_V) {
-  for (uint i = 0; i < size_of_V; i++) {
-    v[i] = i;
-    v_back[i] = i;
-  }
-}
-*/
-
-/*
-bool is_it_in_this_vector(uint *vector, uint size_of_vector, uint
-element_we_search, bool is_the_vector_sorted) { if (is_the_vector_sorted) { uint
-low = 0; uint high = size_of_vector; uint midle;
-
-        while (low <= high) {
-          midle = low + (high - low) / 2;
-
-          if (vector[midle] == element_we_search) {
-            return true;
-          } else if (vector[midle] < element_we_search) {
-            low = midle + 1;
-          } else {
-            high = midle - 1;
-          }
-        }
-      } else {
-        // printf("Inside the not sorted vector\n");
-        for (uint i = 0; i < size_of_vector; i++) {
-          if (vector[i] == element_we_search) {
-            return true;
-          }
-            // else{
-            //     printf("Element %d is not the one we look for %d \n" ,
-  vector[i] ,
-            // element_we_search ) ;
-            // }
-        }
-      }
-
-      return false;
-    }
-*/
 

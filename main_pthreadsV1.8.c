@@ -13,6 +13,8 @@
 
 int main() {
 
+  // gcc our_parallel_functions.c  main_pthreadsV1.8.c mmio.c  -o "executable_name" -O3 -lpthread  
+
   printf(" ~~~~~~~~~~~~~~~~~~  Code Version 1.8 pthreads  ~~~~~~~~~~~~~~~~~~ \n\n");
   //~~~~~~~~~~~~~~~~~~~~~  Opening file ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -143,23 +145,6 @@ int main() {
   uint* v       = v_colors.vector1_start ;
   uint* v_back  = v_colors.vector2_start ; 
   uint total_different_colors_in_SCC = 0;
-
-
-  /*
-  // Check sums to make sure the data was loaded succefully :)
-  uint sumI = 0;
-  uint sumJ = 0;
-
-  for (int i = 0; i < total_number_of_edges; i++) {
-    sumI += I[i];
-    sumJ += J[i];
-  }
-  printf("SumI = %u\n", sumI);
-  printf("sumJ = %u\n", sumJ);
-  */
-  
-
-
 
   bool has_changed_colors_forward, has_changed_colors_backward;
   uint total_nodes_in_SCC = 0;
